@@ -1,0 +1,37 @@
+builder then_ref(builder, builder) asm "STBREFR";
+
+
+() pow_send_all_jettons(slice jetton_wallet, slice destination, int max_power) impure {
+    builder envelope_prefix = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(jetton_wallet)
+        .store_coins(30000000)    ;; 0.03 TON
+        .store_uint(1, 107);      ;; TODO: with prev line, store constant slice
+    
+    builder transfer_prefix = begin_cell()
+        .store_uint(0x0f8a7ea5, 32)
+        .store_uint(0, 64);       ;; TODO: with prev line, store constant slice
+
+    builder transfer_suffix = begin_cell()
+        .store_slice(destination)
+        .store_slice(my_address())
+        .store_uint(0, 1 + 4 + 1);
+
+    int n = 1 << max_power;
+    repeat(max_power) {
+        n >>= 1;
+        builder transfer = transfer_prefix
+            .store_coins(n)
+            .store_builder(transfer_suffix);
+        envelope_prefix
+            .then_ref(transfer)
+            .end_cell()
+            .send_raw_message(2);
+    }
+}
+
+() send_all_jettons(slice jetton_wallet, slice destination) impure {
+    pow_send_all_jettons(jetton_wallet, destination, 120);
+    ;; TEP-74 makes maximal transfer size 2^120-1 coins by mandating value is stored in VarUInteger 16
+    ;; admittedly, 2**120 nano-tokens at decimals 9 would represent 10**27 tokens
+}
