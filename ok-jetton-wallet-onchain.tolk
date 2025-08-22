@@ -1,5 +1,5 @@
 @pure
-fun T.changeTuple<X>(mutate self, pos: int, value: X): self
+fun tuple.changeTuple<X>(mutate self, pos: int, value: X): self
     asm(self value pos) "SETINDEXVAR";
 
 @pure
@@ -18,7 +18,7 @@ fun vmInvokeGetAddress(owner_address: address, c7: tuple, master_data: cell, mas
 fun getJettonWalletAddress(owner_address: address, code: cell, data: cell, master_addr: address): address {
     var c7 = getC7();
 
-    var first_c7 = c7.first();
+    var first_c7: tuple = c7.first();
 
     c7 = c7.changeTuple(
         0,
